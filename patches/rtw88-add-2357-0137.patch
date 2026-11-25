@@ -1,0 +1,33 @@
+rtw88: add USB ID 2357:0137 for OEM RTL8812CU adapters (FAST FAC1300U)
+
+芯片侧：RTL8812CU 已由 rtw88_8822cu 支持（参考 ID 0bda:c812 在表内，共用
+rtw8822c_hw_spec）。缺的只是这个 OEM 的 USB ID。
+
+设备形态：插入时先枚举为 Realtek 通用 "driver CD-ROM" 模式 0bda:1a2b
+（USBSTOR\CDROM&VEN_RTK&PROD_DRIVER_STORAGE），SCSI eject 后重新枚举为
+2357:0137（单接口 ff/ff/ff），此时才有 WLAN 功能。
+
+上游状态（2026-11-25 核对）：
+  - torvalds/linux master 与 v6.8：均无 2357:0137（v6.8 6 条，master 多一条
+    2001:3329 D-Link AC13U）
+  - lwfinger/rtw88 master：与 torvalds master 的 rtw8822cu.c 逐字节一致，同样没有
+  ⇒ 每次重新安装都必须重新打这个补丁。
+
+注意：不能用 sysfs new_id 动态加 ID。rtw88 的 rtw_usb_probe() 通过
+"rtwdev->chip = (struct rtw_chip_info *)id->driver_info" 取芯片描述符，
+而 new_id 只能传 vid/pid/class，driver_info 恒为 0 → chip 为空指针，必然失败。
+
+Signed-off-by: <your name> <your@email>
+
+diff --git a/rtw8822cu.c b/rtw8822cu.c
+--- a/rtw8822cu.c
++++ b/rtw8822cu.c
+@@ -23,6 +23,8 @@ static const struct usb_device_id rtw_8822cu_id_table[] = {
+ 	  .driver_info = (kernel_ulong_t)&(rtw8822c_hw_spec) }, /* Alpha - Alpha */
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x3329, 0xff, 0xff, 0xff),
+ 	  .driver_info = (kernel_ulong_t)&(rtw8822c_hw_spec) }, /* D-Link AC13U rev. A1 */
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x2357, 0x0137, 0xff, 0xff, 0xff),
++	  .driver_info = (kernel_ulong_t)&(rtw8822c_hw_spec) }, /* FAST FAC1300U (storage mode 0bda:1a2b) */
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(usb, rtw_8822cu_id_table);

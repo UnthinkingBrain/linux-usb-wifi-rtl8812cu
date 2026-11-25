@@ -1,0 +1,8 @@
+# 统一使用 LF：脚本与补丁在 Windows 上被转成 CRLF 会导致
+#   bash: ./install.sh: /usr/bin/env: bad interpreter: No such file or directory
+#   patch: **** malformed patch
+* text=auto eol=lf
+*.sh    text eol=lf
+*.patch text eol=lf
+*.md    text eol=lf
+LICENSE text eol=lf
